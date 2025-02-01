@@ -1,34 +1,56 @@
-name: Run Setup Script
+name: Setup Project Structure
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   setup:
+    name: Setup Backend Project
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: 🚀 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Give Execute Permission to Script
+      - name: 🔑 Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 🔧 Install Dependencies (if package.json exists)
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+
+      - name: 🔑 Give Execute Permission to Setup Script
         run: chmod +x setup_project.sh
 
-      - name: Run Setup Script
+      - name: 🏗️ Run Setup Script
         run: ./setup_project.sh
 
-      - name: Verify Structure
+      - name: 📂 Verify Backend Folder Structure
         run: ls -R backend
 
- Actions UI
+      - name: 🛠️ Run Linter (Optional)
+        run: |
+          if [ -f package.json ]; then
+            npm run lint || echo "No linter found"
+          else
+            echo "Skipping linting, no package.json available"
+          fi
 
-jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Give Execute Permission to Script
-        run: chmod +x setup_project.sh
-
-      - name: Run Setup Script
-        run: ./setup_project.sh
+      - name: ✅ Commit Any Changes (If Necessary)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Auto-update project structure"
+          git push || echo "No changes to commit"
