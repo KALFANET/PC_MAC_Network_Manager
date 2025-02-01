@@ -1,29 +1,33 @@
 #!/bin/bash
 
-# יצירת התיקייה הראשית
-mkdir -p PC_MAC_Network_Manager
+echo "🚀 התחלת יצירת מבנה הפרויקט..."
 
-# מעבר לתוך התיקייה הראשית
-cd PC_MAC_Network_Manager || exit
+# יצירת תיקיית backend עם מבנה תיקיות מסודר
+mkdir -p backend/src/controllers
+mkdir -p backend/src/routes
+mkdir -p backend/src/services
+mkdir -p backend/src/models
+mkdir -p backend/src/config
+mkdir -p backend/src/middlewares
 
-# יצירת מבנה backend
-mkdir -p backend/src/{controllers,routes,services,models,config,middlewares}
+# יצירת קבצי הבסיס
 touch backend/src/app.js
 touch backend/src/database.js
 touch backend/.env
 touch backend/package.json
 touch backend/README.md
 
-# הוספת קובץ gitkeep בתיקיות ריקות כדי לוודא שהן יתעדכנו ב-Git
-touch backend/src/controllers/.gitkeep
-touch backend/src/routes/.gitkeep
-touch backend/src/services/.gitkeep
-touch backend/src/models/.gitkeep
-touch backend/src/config/.gitkeep
-touch backend/src/middlewares/.gitkeep
+# הוספת קובץ .gitkeep לכל תיקייה כדי לוודא שהן נשמרות ב-Git
+find backend/src -type d -exec touch {}/.gitkeep \;
 
-# יצירת תיקייה ל-Frontend (לעתיד)
-mkdir -p frontend
+# מתן הרשאות הרצה לקובץ עצמו
+chmod +x setup_project.sh
 
-# הודעה לסיום
-echo "✅ מבנה הפרויקט נוצר בהצלחה!"
+# מתן הרשאות קריאה/כתיבה לתיקיית backend
+chmod -R 755 backend
+
+# הצגת מבנה הפרויקט לווידוא יצירה תקינה
+echo "📂 מבנה הפרויקט שנוצר:"
+ls -R backend
+
+echo "✅ יצירת מבנה הפרויקט הושלמה בהצלחה!"
