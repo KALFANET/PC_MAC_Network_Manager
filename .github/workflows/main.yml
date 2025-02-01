@@ -1,13 +1,24 @@
 name: Run Setup Script
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:  # מאפשר הפעלה ידנית דרך GitHub Actions UI
+on: [push, pull_request]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Give Execute Permission to Script
+        run: chmod +x setup_project.sh
+
+      - name: Run Setup Script
+        run: ./setup_project.sh
+
+      - name: Verify Structure
+        run: ls -R backend
+
+ Actions UI
 
 jobs:
   setup:
