@@ -1,0 +1,28 @@
+{
+  "name": "pc_mac_network_manager",
+  "version": "1.0.0",
+  "description": "Backend API for PC & MAC Network Manager",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "sequelize": "sequelize --config src/config/config.js --models-path src/models --migrations-path src/migrations --seeders-path src/seeders"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "pg-promise": "^10.15.1",
+    "postgres": "^3.4.5",
+    "sequelize": "^6.37.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "author": "KALFA Netanel Mevorach",
+  "license": "MIT"
+}
