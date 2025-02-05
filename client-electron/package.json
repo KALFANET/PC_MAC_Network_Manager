@@ -2,9 +2,9 @@
   "name": "pc-mac-network-manager-client-electron",
   "version": "1.0.0",
   "description": "Electron-based network manager client",
-  "main": "src/main.ts",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "ts-node src/main.ts",
+    "start": "electron .",
     "build": "webpack"
   },
   "dependencies": {
@@ -16,9 +16,13 @@
     "redux": "^4.1.0"
   },
   "devDependencies": {
-    "ts-node": "^10.0.0",
+    "@types/electron": "^1.4.38",
+    "@types/node": "^22.13.1",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
     "typescript": "^5.0.0",
     "webpack": "^5.0.0",
     "webpack-cli": "^5.0.0"
   }
 }
+
