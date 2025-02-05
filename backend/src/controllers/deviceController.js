@@ -1,26 +1,26 @@
-const db = require('../models'); 
-const Device = db.Device; 
+const db = require('../models');
+const { Device } = db;
 
 exports.createDevice = async (req, res) => {
     try {
-      const { name, ipAddress, status, userId } = req.body; // ודא שהשדה ipAddress נקלט
-  
-      if (!ipAddress) {
-        return res.status(400).json({ message: 'ipAddress is required' });
-      }
-  
-      const newDevice = await Device.create({
-        name,
-        ipAddress,
-        status: status || 'unknown',
-        userId
-      });
-  
-      return res.status(201).json({ message: 'Device created successfully', device: newDevice });
+        const { name, ipAddress, status, userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'userId is required' });
+        }
+
+        const newDevice = await db.Device.create({
+            name,
+            ipAddress,
+            status: status || 'unknown',
+            userId
+        });
+
+        return res.status(201).json({ message: 'Device created successfully', device: newDevice });
     } catch (error) {
-      return res.status(500).json({ message: 'Error creating device', error: error.message });
+        return res.status(500).json({ message: 'Error creating device', error: error.message });
     }
-  };
+};
 
 exports.getDevices = async (req, res) => {
     try {
@@ -34,7 +34,7 @@ exports.getDevices = async (req, res) => {
 
 exports.getDeviceById = async (req, res) => {
     try {
-        const device = await Device.findOne({ where: { id: req.params.id, userId: req.user.id } });
+        const device = await device.findOne({ where: { id: req.params.id, userId: req.user.id } });
         if (!device) return res.status(404).json({ message: "מחשב לא נמצא" });
         res.json(device);
     } catch (error) {

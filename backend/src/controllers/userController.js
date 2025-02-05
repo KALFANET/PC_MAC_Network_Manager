@@ -1,45 +1,53 @@
+const db = require('../models');
+/* `const User = db.User;` is importing the User model from the database connection (`db`) and
+assigning it to the variable `User`. This allows the code to interact with the User model, such as
+creating new users in the `register` function and querying users in the `login` function. */
+/* `const User = db.User;` is importing the User model from the `db` object. This line allows you to
+access the User model defined in the `models` module and use it within the current file for
+operations such as creating new users in the database. */
+const { User } = db;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const db = require('../models'); 
-const user = db.users; 
 require('dotenv').config();
-
 exports.register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-
+        
         if (!username || !email || !password) {
-            return res.status(400).json({ message: "חובה למלא שם משתמש, אימייל וסיסמה" });
+            return res.status(400).json({ message: 'All fields are required' });
         }
 
+        // Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, email, password: hashedPassword });
 
-        res.json({ message: 'משתמש נרשם בהצלחה!', user });
+        const newUser = await User.create({ username, email, password: hashedPassword });
+        res.status(201).json({ message: 'משתמש נוצר בהצלחה!', user: newUser });
     } catch (error) {
-        console.error("❌ שגיאה בעת יצירת משתמש:", error);
         res.status(500).json({ message: 'שגיאה בעת יצירת משתמש', error: error.message });
     }
 };
-
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ where: { email } });
-
-        if (!user || !bcrypt.compareSync(password, user.password)) {
-            return res.status(401).json({ message: 'אימייל או סיסמה שגויים' });
+        
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
         }
-
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
         const token = jwt.sign(
             { id: user.id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '4h' }
         );
-
         res.json({ token });
     } catch (error) {
-        console.error("❌ שגיאה בעת ההתחברות:", error);
-        res.status(500).json({ message: 'שגיאה בעת ההתחברות', error: error.message });
+        res.status(500).json({ message: 'Login error', error: error.message });
     }
 };

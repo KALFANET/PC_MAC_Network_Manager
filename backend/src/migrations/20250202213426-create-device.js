@@ -1,43 +1,49 @@
 'use strict';
+
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Devices', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('Devices', { // ודא שזה תואם לשם בטבלה
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
-      },
-      userId: {
         type: Sequelize.UUID,
-        allowNull: false
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      ipAddress: { // 👈 ודא שהשדה מוגדר כ-required
+      ipAddress: {
         type: Sequelize.STRING,
-        allowNull: false
-      },
-      macAddress: {
-        type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          isIP: true
+        }
       },
       status: {
-        type: Sequelize.STRING
+        type: Sequelize.ENUM('online', 'offline', 'unknown'),
+        defaultValue: 'unknown'
+      },
+      userId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'users', // ודא שזה תואם בדיוק לשם בטבלה
+          key: 'id'
+        }
       },
       createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        allowNull: false
       },
       updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        allowNull: false
       }
     });
   },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Devices');
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('Devices'); // ודא שזה מתאים לשם בטבלה
   }
 };

@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // טעינת משתני סביבה
 const path = require('path');
 
 module.exports = {
@@ -9,20 +9,18 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
-    dialectOptions: {
+    migrationStorage: "sequelize",
+    migrationStoragePath: path.join(__dirname, '../migrations'),    dialectOptions: {
       ssl: {
-        require: true,
+        require: false,
         rejectUnauthorized: false
       }
+   
     },
     logging: false,
-    migrationStorage: "sequelize",
     migrationStorageTableName: "migrations",
-    migrationStoragePath: path.resolve(__dirname, "../migrations"),
     seederStorage: "sequelize",
-    seederStorageTableName: "seeders",
-    seederStoragePath: path.resolve(__dirname, "../seeders"),
-    modelPaths: [path.resolve(__dirname, "../models")]
+    seederStorageTableName: "seeders"
   },
   test: {
     username: process.env.DB_USER,
@@ -37,10 +35,7 @@ module.exports = {
         rejectUnauthorized: false
       }
     },
-    logging: false,
-    migrationStoragePath: path.resolve(__dirname, "../migrations"),
-    seederStoragePath: path.resolve(__dirname, "../seeders"),
-    modelPaths: [path.resolve(__dirname, "../models")]
+    logging: false
   },
   production: {
     username: process.env.DB_USER,
@@ -55,9 +50,6 @@ module.exports = {
         rejectUnauthorized: false
       }
     },
-    logging: false,
-    migrationStoragePath: path.resolve(__dirname, "../migrations"),
-    seederStoragePath: path.resolve(__dirname, "../seeders"),
-    modelPaths: [path.resolve(__dirname, "../models")]
+    logging: false
   }
 };

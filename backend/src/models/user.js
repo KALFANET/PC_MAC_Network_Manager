@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('Users', {
+  const User = sequelize.define('users', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -14,18 +14,17 @@ module.exports = (sequelize, DataTypes) => {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
+      validate: {
+        isEmail: true
+      }
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false
-    },
-    role: {
-      type: DataTypes.ENUM('admin', 'user'),
-      defaultValue: 'user'
     }
   }, {
-    tableName: 'Users',
+    tableName: 'users',
     timestamps: true
   });
 

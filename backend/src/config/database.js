@@ -1,6 +1,7 @@
 const { Sequelize } = require('sequelize');
 const dbConfig = require('./config'); // טעינת ההגדרות
 
+
 const sequelize = new Sequelize(
     dbConfig.development.database,
     dbConfig.development.username,

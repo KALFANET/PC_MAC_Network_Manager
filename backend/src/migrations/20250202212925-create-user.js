@@ -5,14 +5,13 @@ module.exports = {
     await queryInterface.createTable('users', {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: Sequelize.UUIDV4, // השתמש ב-Sequelize במקום uuid_generate_v4()
         allowNull: false,
         primaryKey: true
       },
       username: {
         type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
+        allowNull: false
       },
       email: {
         type: Sequelize.STRING,
@@ -24,7 +23,8 @@ module.exports = {
         allowNull: false
       },
       role: {
-        type: Sequelize.ENUM('admin', 'user'),
+        type: Sequelize.STRING,
+        allowNull: false,
         defaultValue: 'user'
       },
       createdAt: {

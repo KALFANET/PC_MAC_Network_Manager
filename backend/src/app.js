@@ -7,23 +7,25 @@ const userRoutes = require('./routes/userRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 
 const app = express();
+const db = require('./models');
 
+db.sequelize.sync({ alter: true })
+  .then(() => console.log("📦 Models synchronized successfully"))
+  .catch(err => console.error("❌ Error synchronizing models:", err));
 
-// Middlewares
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
-// ברירת מחדל ל-API
-app.get('/', (req, res) => {
-    res.json({ message: '🚀 API עובד בהצלחה!' });
-});
 app.use('/api/users', userRoutes);
-app.use('/api/devices', deviceRoutes); // 🔹 חיבור הנתיבים
+app.use('/api/devices', deviceRoutes);
 
-// הפעלת השרת
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
     console.log(`🚀 שרת ה-Backend פועל על http://localhost:${PORT}`);
-});
+  });
+}
+
+module.exports = app; // 📌 ייצוא האפליקציה לבדיקה
