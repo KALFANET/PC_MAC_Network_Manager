@@ -1,0 +1,150 @@
+.
+├── .DS_Store
+├── .github
+│   └── workflows
+│       └── main.yml
+├── .gitignore
+├── .sourcery.yaml
+├── README.md
+├── agent
+│   ├── .DS_Store
+│   ├── .env
+│   ├── change.sh
+│   ├── config
+│   │   ├── advanced.js
+│   │   ├── config.json
+│   │   ├── index.js
+│   │   └── settings.json
+│   ├── docs
+│   ├── index.html
+│   ├── logs
+│   │   ├── agent-logger.js
+│   │   └── error-logs.js
+│   ├── main.ts
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── scripts
+│   │   ├── install.sh
+│   │   ├── install_dependencies.sh
+│   │   ├── uninstall.sh
+│   │   └── update.sh
+│   ├── src
+│   │   ├── .DS_Store
+│   │   ├── agent-commands.js
+│   │   ├── agent-communication.js
+│   │   ├── agent-service.js
+│   │   ├── command-handler.js
+│   │   ├── command-test.js
+│   │   ├── services
+│   │   │   ├── .DS_Store
+│   │   │   ├── agent-setup.js
+│   │   │   ├── agent-status.js
+│   │   │   ├── device-manager.js
+│   │   │   ├── network-agent.js
+│   │   │   ├── remote-access.js
+│   │   │   ├── security.js
+│   │   │   └── system-info.js
+│   │   └── utils
+│   │       ├── encryption.js
+│   │       ├── logger.js
+│   │       └── validation.ts
+│   ├── testdisk.log
+│   └── tests
+│       ├── api-test.js
+│       ├── command-test.js
+│       ├── network-test.js
+│       ├── security-test.js
+│       └── system-test.js
+├── backend
+│   ├── .env
+│   ├── .gitkeep
+│   ├── README.md
+│   ├── eslint.config.mjs
+│   ├── package-lock.json
+│   ├── package.json
+│   └── src
+│       ├── .env
+│       ├── .gitkeep
+│       ├── __tests__
+│       │   ├── device.test.js
+│       │   └── models
+│       │       └── device.test.js
+│       ├── app.js
+│       ├── config
+│       │   ├── .gitkeep
+│       │   ├── config.js
+│       │   └── database.js
+│       ├── controllers
+│       │   ├── .gitkeep
+│       │   ├── deviceController.js
+│       │   └── userController.js
+│       ├── middlewares
+│       │   ├── .gitkeep
+│       │   └── authMiddleware.js
+│       ├── migrations
+│       │   ├── 20250202212925-create-user.js
+│       │   ├── 20250202213426-create-device.js
+│       │   ├── 20250202235501-add-index-to-userId.js
+│       │   └── 20250203001718-change-users-id-to-uuid.js.js
+│       ├── models
+│       │   ├── .gitkeep
+│       │   ├── device.js
+│       │   ├── index.js
+│       │   └── user.js
+│       ├── routes
+│       │   ├── .gitkeep
+│       │   ├── deviceRoutes.js
+│       │   └── userRoutes.js
+│       ├── seeders
+│       └── services
+│           └── .gitkeep
+├── client
+│   ├── .gitignore
+│   ├── README.md
+│   ├── README.old.md
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── index.html
+│   │   ├── logo192.png
+│   │   ├── logo512.png
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   └── src
+│       ├── App.css
+│       ├── App.test.tsx
+│       ├── App.tsx
+│       ├── index.css
+│       ├── index.tsx
+│       ├── logo.svg
+│       ├── reportWebVitals.ts
+│       └── setupTests.ts
+├── frontend
+│   ├── .gitignore
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── index.html
+│   │   ├── logo192.png
+│   │   ├── logo512.png
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   └── src
+│       ├── App.css
+│       ├── App.js
+│       ├── App.test.js
+│       ├── index.css
+│       ├── index.js
+│       ├── logo.svg
+│       ├── reportWebVitals.js
+│       ├── service-worker.js
+│       ├── serviceWorkerRegistration.js
+│       └── setupTests.js
+├── package-lock.json
+├── package.json
+├── project_structure.txt
+└── setup_project.sh
+
+30 directories, 118 files

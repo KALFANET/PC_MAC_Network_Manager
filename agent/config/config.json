@@ -1,0 +1,6 @@
+{
+  "server_url": "http://localhost:4000",
+  "agent_id": "12345-ABCDE",
+  "encryption_key": "mySecureKey12345",
+  "log_level": "info"
+}
