@@ -14,31 +14,20 @@ app.whenReady().then(() => {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, '..', 'public', 'index.html')); // ✅ תיקון נתיב index.html
 
-  mainWindow.on('closed', () => {
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.loadURL("http://localhost:3000"); // פיתוח - שרת React
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '..', 'public', 'index.html')); // ✅ תיקון נתיב index.html
+}
+
+  mainWindow.on("closed", () => {
     mainWindow = null;
   });
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    mainWindow = new BrowserWindow({
-      width: 1000,
-      height: 700,
-      webPreferences: {
-        preload: path.join(__dirname, 'dist', 'preload.js'), // ✅ זהה להגדרה הקודמת
-        nodeIntegration: false,
-        contextIsolation: true
-      }
-    });
-
-    mainWindow.loadFile(path.join(__dirname, '..', 'public', 'index.html')); // ✅ תיקון נתיב index.html
-  }
-});
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
-  }
+    }
 });

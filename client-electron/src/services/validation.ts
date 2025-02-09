@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 // Validation schemas
-export const schemas = {
+const schemas = {
   // System Settings
   systemSettings: z.object({
     language: z.enum(['en', 'he']),
@@ -41,53 +41,20 @@ export const schemas = {
 
 // Validation functions
 export const validate = {
-  // System Settings
   systemSettings: (data: unknown) => {
-    try {
-      return schemas.systemSettings.parse(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error('Invalid system settings: ' + error.message);
-      } else {
-        throw new Error('Invalid system settings: Unknown error');
-      }
-    }
+    return schemas.systemSettings.safeParse(data);
   },
-
-  // User Data
-  userData: (data: unknown) => {
-    try {
-      return schemas.user.parse(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error('Invalid user data: ' + error.message);
-      }
-      throw error;
-    }
+  
+  user: (data: unknown) => {
+    return schemas.user.safeParse(data);
   },
-
-  // Software Installation
+  
   software: (data: unknown) => {
-    try {
-      return schemas.software.parse(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error('Invalid software data: ' + error.message);
-      }
-      throw error;
-    }
+    return schemas.software.safeParse(data);
   },
-
-  // Command Execution
+  
   command: (data: unknown) => {
-    try {
-      return schemas.command.parse(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error('Invalid command: ' + error.message);
-      }
-      throw error;
-    }
+    return schemas.command.safeParse(data);
   }
 };
 
@@ -121,8 +88,8 @@ export const guards = {
       command !== null &&
       'type' in command &&
       'command' in command &&
-      typeof (command as any).type === 'string' &&
-      typeof (command as any).command === 'string'
+      typeof command.type === 'string' &&
+      typeof command.command === 'string'
     );
   },
 
@@ -132,15 +99,13 @@ export const guards = {
       software !== null &&
       'name' in software &&
       'version' in software &&
-      typeof (software as any).name === 'string' &&
-      typeof (software as any).version === 'string'
+      typeof software.name === 'string' &&
+      typeof software.version === 'string'
     );
   }
 };
 
-export default {
-  schemas,
-  validate,
-  sanitize,
-  guards
-};
+export { schemas };
+
+// No default export - we'll use named exports instead
+export type { z };
