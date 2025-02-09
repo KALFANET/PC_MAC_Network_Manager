@@ -1,67 +1,84 @@
-import create from "zustand";
+import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { endpoints } from "./services/api";
+import { Command } from "../src/types"; // ✅ כעת `Command` מיובא מ-`types.ts`
 
-// ✅ 1. הגדרת טיפוס Type עבור state כדי למנוע שגיאות TypeScript
-type SystemState = {
-  status: {
-    connected: boolean;
-    lastUpdate: string;
-    version: string;
-    debugMode: boolean;
-  };
-  updateStatus: (newStatus: Partial<SystemState["status"]>) => void;
+interface Status {
+  connected: boolean;
+  lastUpdate: string;
+  version: string;
+  debugMode: boolean;
+}
+
+interface SystemState {
+  status: Status;
+  currentDevice: string;
+  refreshMetrics: () => void;
+  executeCommand: (cmd: Command) => Promise<void>;
+  updateStatus: (newStatus: Partial<Status>) => void;
   checkConnection: () => Promise<boolean>;
-};
+}
 
-// ✅ 2. יצירת Zustand store עם הגדרות מתאימות
 const useSystemStore = create<SystemState>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        status: {
-          connected: false,
-          lastUpdate: new Date().toISOString(),
-          version: "1.0.0",
-          debugMode: false,
-        },
+  persist(
+    devtools((set, get) => ({
+      status: {
+        connected: false,
+        lastUpdate: new Date().toISOString(),
+        version: "1.0.0",
+        debugMode: false,
+      },
+      currentDevice: "Unknown Device",
 
-        // ✅ 3. פונקציה לעדכון הסטטוס
-        updateStatus: (newStatus) =>
+      refreshMetrics: () => {
+        console.log("Refreshing system metrics...");
+      },
+
+      executeCommand: async (cmd: Command) => {
+        console.log(`Executing command: ${cmd.command} (Type: ${cmd.type})`);
+        if (cmd.params) {
+          console.log("With parameters:", cmd.params);
+        }
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          console.log("Command executed successfully.");
+        } catch (error) {
+          console.error("Command execution failed:", error);
+        }
+      },
+
+      updateStatus: (newStatus) =>
+        set((state) => ({
+          status: { ...state.status, ...newStatus },
+        })),
+
+      checkConnection: async () => {
+        try {
+          console.log("Checking system connection...");
+          const isConnected = Math.random() > 0.5;
           set((state) => ({
-            status: { ...state.status, ...newStatus },
-          })),
-
-        // ✅ 4. פונקציה לבדיקה האם המערכת מחוברת
-        checkConnection: async () => {
-          try {
-            const response = await endpoints.getSystemStatus();
-            const isConnected = response.status === "connected";
-
-            set((state) => ({
-              status: {
-                ...state.status,
-                connected: isConnected,
-                lastUpdate: new Date().toISOString(),
-              },
-            }));
-            return isConnected;
-          } catch (error) {
-            console.error("Connection check failed:", error);
-            set((state) => ({
-              status: {
-                ...state.status,
-                connected: false,
-                lastUpdate: new Date().toISOString(),
-              },
-            }));
-            return false;
-          }
-        },
-      }),
-      { name: "system-store" } // זיהוי מקומי של Zustand Persist
-    )
+            status: {
+              ...state.status,
+              connected: isConnected,
+              lastUpdate: new Date().toISOString(),
+            },
+          }));
+          console.log(`Connection status: ${isConnected ? "Connected" : "Disconnected"}`);
+          return isConnected;
+        } catch (error) {
+          console.error("Connection check failed:", error);
+          set((state) => ({
+            status: {
+              ...state.status,
+              connected: false,
+              lastUpdate: new Date().toISOString(),
+            },
+          }));
+          return false;
+        }
+      },
+    })),
+    { name: "system-store", version: 1 }
   )
 );
 
-export default useSystemStore;  
+export default useSystemStore;
