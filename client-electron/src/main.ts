@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
+import "./ipcHandler"; 
 
 let mainWindow: BrowserWindow | null = null; // משתנה גלובלי
 
