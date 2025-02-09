@@ -50,4 +50,18 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Login error', error: error.message });
     }
+    exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // מזהה המשתמש מהטוקן
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'username', 'email'] // השדות שנרצה להחזיר
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'משתמש לא נמצא' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('שגיאה בשליפת פרופיל המשתמש:', error);
+    res.status(500).json({ message: 'שגיאת שרת' });
+  }
 };
