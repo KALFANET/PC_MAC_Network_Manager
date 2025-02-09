@@ -1,46 +1,42 @@
-import { ipcMain } from 'electron';
-import { checkForUpdates, fetchDevices, getSystemStatus, executeCommand } from './services/api';
+import { ipcMain } from "electron";
+import { getSystemStatus, fetchDevices, executeCommand, checkForUpdates } from "./services/api";
 
-// ✅ 1. שליפת סטטוס מערכת
-ipcMain.handle('get-system-status', async () => {
+// ✅ שליחת סטטוס מערכת
+ipcMain.handle("getSystemStatus", async () => {
   try {
-    const status = await getSystemStatus();
-    return status;
+    return await getSystemStatus();
   } catch (error) {
-    console.error('Failed to fetch system status:', error);
-    throw error;
+    console.error("Error in getSystemStatus:", error);
+    return { error: "Failed to fetch system status" };
   }
 });
 
-// ✅ 2. שליפת רשימת מכשירים מחוברים
-ipcMain.handle('fetch-devices', async () => {
+// ✅ שליפת רשימת מכשירים
+ipcMain.handle("fetchDevices", async () => {
   try {
-    const devices = await fetchDevices();
-    return devices;
+    return await fetchDevices();
   } catch (error) {
-    console.error('Failed to fetch devices:', error);
-    throw error;
+    console.error("Error in fetchDevices:", error);
+    return { error: "Failed to fetch devices" };
   }
 });
 
-// ✅ 3. ביצוע פקודה (למשל הרצת טרמינל או פקודה ברקע)
-ipcMain.handle('execute-command', async (_event, command: string) => {
+// ✅ הרצת פקודה מרחוק
+ipcMain.handle("executeCommand", async (_event, { command, params }) => {
   try {
-    const result = await executeCommand(command);
-    return result;
+    return await executeCommand(command, params);
   } catch (error) {
-    console.error('Command execution failed:', error);
-    return { success: false, message: 'Execution failed' };
+    console.error("Error executing command:", error);
+    return { error: "Command execution failed" };
   }
 });
 
-// ✅ 4. בדיקת עדכוני מערכת
-ipcMain.handle('check-for-updates', async () => {
+// ✅ בדיקת עדכונים
+ipcMain.handle("checkForUpdates", async () => {
   try {
-    const updateStatus = await checkForUpdates();
-    return updateStatus;
+    return await checkForUpdates();
   } catch (error) {
-    console.error('Failed to check for updates:', error);
-    throw error;
+    console.error("Error checking for updates:", error);
+    return { error: "Failed to check for updates" };
   }
 });
