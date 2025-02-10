@@ -1,6 +1,8 @@
-import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
-const useSystemStore = create()(persist(devtools((set, get) => ({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const zustand_1 = require("zustand");
+const middleware_1 = require("zustand/middleware");
+const useSystemStore = (0, zustand_1.create)()((0, middleware_1.persist)((0, middleware_1.devtools)((set, get) => ({
     status: {
         connected: false,
         lastUpdate: new Date().toISOString(),
@@ -8,13 +10,16 @@ const useSystemStore = create()(persist(devtools((set, get) => ({
         debugMode: false,
     },
     currentDevice: "Unknown Device",
+    devices: [],
+    updateDevices: (devices) => set(() => ({ devices })),
     refreshMetrics: () => {
         console.log("Refreshing system metrics...");
     },
     executeCommand: async (cmd) => {
         console.log(`Executing command: ${cmd.command} (Type: ${cmd.type})`);
-        if (cmd.params) {
-            console.log("With parameters:", cmd.params);
+        if (!cmd.command) {
+            console.error("Missing command");
+            return;
         }
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -54,5 +59,5 @@ const useSystemStore = create()(persist(devtools((set, get) => ({
         }
     },
 })), { name: "system-store", version: 1 }));
-export default useSystemStore;
+exports.default = useSystemStore;
 //# sourceMappingURL=store.js.map

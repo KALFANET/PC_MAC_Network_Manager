@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { Command } from "../src/types"; // ✅ כעת `Command` מיובא מ-`types.ts`
+import { Command } from "./types"; // ✅ תיקון הנתיב לייבוא נכון
 
 interface Status {
   connected: boolean;
@@ -9,9 +9,17 @@ interface Status {
   debugMode: boolean;
 }
 
+interface Device {
+  id: string;
+  name: string;
+  status: string;
+}
+
 interface SystemState {
   status: Status;
   currentDevice: string;
+  devices: Device[];
+  updateDevices: (devices: Device[]) => void;
   refreshMetrics: () => void;
   executeCommand: (cmd: Command) => Promise<void>;
   updateStatus: (newStatus: Partial<Status>) => void;
@@ -28,6 +36,9 @@ const useSystemStore = create<SystemState>()(
         debugMode: false,
       },
       currentDevice: "Unknown Device",
+      devices: [],
+
+      updateDevices: (devices) => set(() => ({ devices })),
 
       refreshMetrics: () => {
         console.log("Refreshing system metrics...");
@@ -35,8 +46,9 @@ const useSystemStore = create<SystemState>()(
 
       executeCommand: async (cmd: Command) => {
         console.log(`Executing command: ${cmd.command} (Type: ${cmd.type})`);
-        if (cmd.params) {
-          console.log("With parameters:", cmd.params);
+        if (!cmd.command) {
+          console.error("Missing command");
+          return;
         }
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000));

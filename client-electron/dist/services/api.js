@@ -1,4 +1,7 @@
-export const endpoints = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.endpoints = void 0;
+exports.endpoints = {
     // ✅ 1. שליפת רשימת מכשירים
     fetchDevices: async () => {
         try {
@@ -27,6 +30,20 @@ export const endpoints = {
             throw error;
         }
     },
+    // ✅ 3. בדיקת עדכונים
+    checkForUpdates: async () => {
+        try {
+            const response = await fetch("http://localhost:4000/api/check-updates");
+            if (!response.ok) {
+                throw new Error("Failed to check for updates");
+            }
+            return await response.json();
+        }
+        catch (error) {
+            console.error("API Error:", error);
+            throw error;
+        }
+    },
 };
-export default endpoints;
+exports.default = exports.endpoints;
 //# sourceMappingURL=api.js.map

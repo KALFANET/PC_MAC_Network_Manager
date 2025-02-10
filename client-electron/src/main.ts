@@ -9,7 +9,7 @@ app.whenReady().then(() => {
     width: 1000,
     height: 700,
     webPreferences: {
-      preload: path.join(__dirname, 'dist', 'preload.js'), // ✅ תיקון נתיב preload
+      preload: path.join(__dirname, 'preload.js'), // ✅ תיקון נתיב preload
       nodeIntegration: false,
       contextIsolation: true
     }
@@ -19,7 +19,7 @@ app.whenReady().then(() => {
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL("http://localhost:3000"); // פיתוח - שרת React
   } else {
-    mainWindow.loadFile(path.join(__dirname, '..', 'public', 'index.html')); // ✅ תיקון נתיב index.html
+    mainWindow.loadFile(path.join(__dirname, '..','public', 'index.html')); // ✅ תיקון נתיב index.html
 }
 
   mainWindow.on("closed", () => {

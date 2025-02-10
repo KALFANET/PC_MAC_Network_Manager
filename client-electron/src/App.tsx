@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Wifi, WifiOff, RefreshCw } from "lucide-react";
 import useSystemStore from "./store";
-import { Command } from "../src/types"; 
-import { endpoints } from "./services/api";
+import { Command } from "./types"; 
+import { endpoints } from "./services/api"; // ✅ שינוי ייבוא מתאים
 import { validate } from "./services/validation";
 
 const App: React.FC = () => {
@@ -39,13 +39,15 @@ const App: React.FC = () => {
   /** ✅ פונקציה להרצת פקודות */
   const handleCommand = async (cmd: unknown) => {
     try {
+      if (typeof cmd !== "object" || cmd === null) {
+        throw new Error("Invalid command format");
+      }
+
       const validationResult = validate.command(cmd);
-  
       if (!validationResult.success) {
         throw new Error(validationResult.error.message);
       }
-  
-      // ✅ נוודא שהנתונים המוחזרים הם מהסוג הנכון
+
       const commandData: Command = validationResult.data;
       await executeCommand(commandData);
     } catch (error) {
@@ -59,11 +61,17 @@ const App: React.FC = () => {
       <div className="flex items-center justify-between p-4">
         <h1 className="text-xl font-bold">Network Manager</h1>
         <button
-          onClick={refreshMetrics}
+          onClick={() => {
+            if (status.connected) {
+              refreshMetrics();
+            } else {
+              console.warn("Cannot refresh metrics: No connection");
+            }
+          }}
           disabled={isLoading || !status.connected}
           className="p-2 rounded hover:bg-slate-200 disabled:opacity-50"
         >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
         </button>
       </div>
 

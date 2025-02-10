@@ -1,41 +1,45 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.schemas = exports.guards = exports.sanitize = exports.validate = void 0;
 // services/validation.ts
-import { z } from 'zod';
+const zod_1 = require("zod");
 // Validation schemas
 const schemas = {
     // System Settings
-    systemSettings: z.object({
-        language: z.enum(['en', 'he']),
-        theme: z.enum(['light', 'dark', 'system']),
-        autoUpdate: z.boolean(),
-        debugMode: z.boolean(),
-        retentionDays: z.number().min(1).max(365)
+    systemSettings: zod_1.z.object({
+        language: zod_1.z.enum(['en', 'he']),
+        theme: zod_1.z.enum(['light', 'dark', 'system']),
+        autoUpdate: zod_1.z.boolean(),
+        debugMode: zod_1.z.boolean(),
+        retentionDays: zod_1.z.number().min(1).max(365)
     }),
     // User Management
-    user: z.object({
-        username: z.string().min(3).max(50),
-        email: z.string().email(),
-        role: z.enum(['admin', 'technician', 'viewer']),
-        password: z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    user: zod_1.z.object({
+        username: zod_1.z.string().min(3).max(50),
+        email: zod_1.z.string().email(),
+        role: zod_1.z.enum(['admin', 'technician', 'viewer']),
+        password: zod_1.z.string().min(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
             message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
         })
     }),
     // Software Installation
-    software: z.object({
-        name: z.string().min(1),
-        version: z.string(),
-        platform: z.enum(['windows', 'mac']),
-        requiredSpace: z.number().min(0),
-        autoInstall: z.boolean()
+    software: zod_1.z.object({
+        name: zod_1.z.string().min(1),
+        version: zod_1.z.string(),
+        platform: zod_1.z.enum(['windows', 'mac']),
+        requiredSpace: zod_1.z.number().min(0),
+        autoInstall: zod_1.z.boolean()
     }),
     // Command Execution
-    command: z.object({
-        type: z.enum(['system', 'network', 'process']),
-        command: z.string().min(1),
-        params: z.record(z.string()).optional()
+    command: zod_1.z.object({
+        type: zod_1.z.enum(['system', 'network', 'process']),
+        command: zod_1.z.string().min(1),
+        params: zod_1.z.record(zod_1.z.string()).optional()
     })
 };
+exports.schemas = schemas;
 // Validation functions
-export const validate = {
+exports.validate = {
     systemSettings: (data) => {
         return schemas.systemSettings.safeParse(data);
     },
@@ -50,7 +54,7 @@ export const validate = {
     }
 };
 // Input sanitization
-export const sanitize = {
+exports.sanitize = {
     command: (command) => {
         // Remove potentially dangerous characters
         return command.replace(/[;&|`$]/g, '');
@@ -69,7 +73,7 @@ export const sanitize = {
     }
 };
 // Type guards
-export const guards = {
+exports.guards = {
     isValidCommand: (command) => {
         return (typeof command === 'object' &&
             command !== null &&
@@ -87,5 +91,4 @@ export const guards = {
             typeof software.version === 'string');
     }
 };
-export { schemas };
 //# sourceMappingURL=validation.js.map

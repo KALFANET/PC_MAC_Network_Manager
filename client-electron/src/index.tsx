@@ -1,14 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import App from "./App";
-import DevicesPage from "../src/pages/DevicesPage";
+import DevicesPage from "./pages/DevicesPage";
 import SettingsPage from "./pages/SettingsPage";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
   <React.StrictMode>
-    <Router>
+    <Router> {/* ✅ HashRouter במקום BrowserRouter */}
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/devices" element={<DevicesPage />} />
