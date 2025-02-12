@@ -17,10 +17,14 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+// נתיב שמטפל בכל פעולות המכשירים
 
 app.use('/api/users', userRoutes);
 app.use('/api/devices', deviceRoutes);
-
+app.use('/api/system-status', userRoutes);
+app.get('/', (req, res) => {
+  res.json({ message: '🚀 API עובד בהצלחה!' });
+});
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {

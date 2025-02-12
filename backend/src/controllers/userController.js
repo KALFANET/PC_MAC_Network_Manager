@@ -1,14 +1,9 @@
 const db = require('../models');
-/* `const User = db.User;` is importing the User model from the database connection (`db`) and
-assigning it to the variable `User`. This allows the code to interact with the User model, such as
-creating new users in the `register` function and querying users in the `login` function. */
-/* `const User = db.User;` is importing the User model from the `db` object. This line allows you to
-access the User model defined in the `models` module and use it within the current file for
-operations such as creating new users in the database. */
 const { User } = db;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
+
 exports.register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -26,6 +21,7 @@ exports.register = async (req, res) => {
         res.status(500).json({ message: 'שגיאה בעת יצירת משתמש', error: error.message });
     }
 };
+
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -50,7 +46,32 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Login error', error: error.message });
     }
-    exports.getProfile = async (req, res) => {
+};
+exports.getSystemStatus = async (req, res) => {
+    try {
+        // בדוק אם החיבור למסד נתונים פעיל
+        await db.sequelize.authenticate();
+        
+        // אם החיבור למסד נתונים תקין
+        res.json({
+            message: 'המערכת פועלת כראוי',
+            status: 'online',
+            database: 'connected',
+            timestamp: new Date(),
+        });
+    } catch (error) {
+        // אם יש בעיה בחיבור למסד נתונים
+        console.error('❌ שגיאה בחיבור למסד הנתונים:', error.message);
+        res.status(500).json({
+            message: 'המערכת לא פועלת כראוי',
+            status: 'offline',
+            database: 'disconnected',
+            timestamp: new Date(),
+        });
+    }
+};
+
+exports.getProfile = async (req, res) => {
   try {
     const userId = req.user.id; // מזהה המשתמש מהטוקן
     const user = await User.findByPk(userId, {

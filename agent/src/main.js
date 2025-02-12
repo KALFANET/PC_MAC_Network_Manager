@@ -7,6 +7,7 @@ const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
 let mainWindow = null;
 electron_1.app.on('ready', () => {
+let mainWindow = null;
     mainWindow = new electron_1.BrowserWindow({
         width: 1000,
         height: 700,

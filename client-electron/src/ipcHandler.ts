@@ -16,7 +16,7 @@ ipcMain.handle("getSystemStatus", async () => {
 ipcMain.handle("fetchDevices", async () => {
   try {
     const devices = await endpoints.fetchDevices();
-    useSystemStore.getState().updateDevices(devices); // ✅ עדכון Zustand Store
+    useSystemStore.getState().updatedevice(devices); // ✅ עדכון Zustand Store
     return devices;
   } catch (error) {
     console.error("Error in fetchDevices:", error);

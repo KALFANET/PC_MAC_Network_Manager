@@ -1,34 +1,26 @@
 import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
-import "./ipcHandler"; 
+import path from 'path';
 
-let mainWindow: BrowserWindow | null = null; // משתנה גלובלי
+let mainWindow: BrowserWindow | null = null;
 
 app.whenReady().then(() => {
-  mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // ✅ תיקון נתיב preload
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  });
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, "preload", "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false,  // לא ניתן להפעיל Node.js בדפדפן של Electron
+        },
+    });
 
-
-  if (process.env.NODE_ENV === "development") {
-    mainWindow.loadURL("http://localhost:3000"); // פיתוח - שרת React
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '..','public', 'index.html')); // ✅ תיקון נתיב index.html
-}
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
+    // אם היישום רץ ב-React, נטען את ה-URL המקומי (localhost:3000)
+    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
+    if (process.platform !== "darwin") {
+        app.quit();
     }
 });

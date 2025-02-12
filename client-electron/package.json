@@ -2,34 +2,57 @@
   "name": "pc-mac-network-manager-client-electron",
   "version": "1.0.0",
   "description": "Electron-based network manager client",
-  "main": "dist/main.bundle.js",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "webpack --mode production"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "electron": "electron ."
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
+    "autoprefixer": "^10.4.20",
     "copy-webpack-plugin": "^12.0.2",
     "electron": "^28.3.3",
+    "install": "^0.13.0",
     "lucide-react": "^0.474.0",
+    "npm": "^10.9.2",
+    "path": "^0.12.7",
+    "path-browserify": "^1.0.1",
+    "postcss": "^8.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^8.1.3",
     "react-router-dom": "^6.29.0",
     "redux": "^4.1.0",
-    "tailwindcss": "^4.0.5",
-    "ts-loader": "^9.5.2",
+    "tailwind": "^4.0.0",
+    "tailwindcss": "^4.0.6",
+    "url": "^0.11.3",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.13.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^7.1.2",
-    "html-webpack-plugin": "^5.5.0",
+    "html-webpack-plugin": "^5.6.3",
+    "react-scripts": "^5.0.1",
     "style-loader": "^4.0.0",
-    "typescript": "^5.7.3",
-    "webpack": "^5.0.0",
-    "webpack-cli": "^5.0.0"
+    "ts-loader": "^9.5.2",
+    "typescript": "^4.9.5",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 module.exports = {
     mode: 'development',  // Change to 'production' for optimized builds
-    entry: './src/index.ts', // Adjust based on your main entry file
+    entry: './src/main.ts', // Adjust based on your main entry file
     output: {
       filename: 'bundle.js',
       path: __dirname + '/dist'

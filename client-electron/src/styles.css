@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ עיצוב רקע כללי */
+body {
+  @apply bg-gray-100 text-gray-900;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ✅ כותרות */
+h1 {
+  @apply text-3xl font-bold text-blue-600;
+}
+
+h2 {
+  @apply text-2xl font-semibold text-gray-800;
+}
+
+/* ✅ קישורים */
+a {
+  @apply text-blue-500 hover:underline;
+}
+
+/* ✅ כפתורים */
+button {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition;
+}
+
+/* ✅ קונטיינר כללי */
+.container {
+  @apply max-w-4xl mx-auto p-4;
+}
+
+/* ✅ כרטיסיות */
+.card {
+  @apply bg-white shadow-md rounded-lg p-4 border border-gray-200;
+}

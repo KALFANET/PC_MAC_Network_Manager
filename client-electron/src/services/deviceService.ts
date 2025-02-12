@@ -4,22 +4,22 @@ const API_URL = "http://localhost:4000/api/devices"; // ודא שהכתובת נ
 
 export interface Device {
   id: string;
-  deviceId: string;
   name: string;
-  type: string;
+  ipAddress: string;
   status: string;
+  userId: string;
 }
 
 /** ✅ רישום מכשיר חדש */
-export const registerDevice = async (deviceId: string, name: string, type: string): Promise<Device> => {
+export const registerDevice = async (name: string, ipAddress: string, status: string): Promise<Device> => {
   try {
     const token = getToken();
     if (!token) throw new Error("No authentication token found.");
 
     const response = await axios.post<Device>(
-      `${API_URL}/register`,
-      { deviceId, name, type },
-      { headers: { Authorization: `Bearer ${token}` } }
+      API_URL,
+      { name, ipAddress, status }, // שליחת הנתונים המלאים שנדרשים
+      { headers: { Authorization: `Bearer ${token}` } } // שליחת ה-token בהצלחה
     );
 
     return response.data;
@@ -35,7 +35,7 @@ export const getDevices = async (): Promise<Device[]> => {
     if (!token) throw new Error("No authentication token found.");
 
     const response = await axios.get<Device[]>(API_URL, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }, // שליחת ה-token ב-header
     });
 
     return response.data;

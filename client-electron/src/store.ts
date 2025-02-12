@@ -9,17 +9,27 @@ interface Status {
   debugMode: boolean;
 }
 
-interface Device {
+interface Devices {
   id: string;
   name: string;
   status: string;
+  cpuUsage: number;   // הוספת שדה cpuUsage
+  ramUsage: number;    // הוספת שדה ramUsage
+  networkUsage: number;  // הוספת שדה networkUsage
+}
+interface User {
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface SystemState {
   status: Status;
   currentDevice: string;
-  devices: Device[];
-  updateDevices: (devices: Device[]) => void;
+  device: Devices[];  // מערך מסוג Devices (כולל את השדות הנוספים)
+  users: User[];
+  updatedevice: (device: Devices[]) => void;
+  updateUsers: (users: User[]) => void;
   refreshMetrics: () => void;
   executeCommand: (cmd: Command) => Promise<void>;
   updateStatus: (newStatus: Partial<Status>) => void;
@@ -36,9 +46,12 @@ const useSystemStore = create<SystemState>()(
         debugMode: false,
       },
       currentDevice: "Unknown Device",
-      devices: [],
+      device: [],  // ✅ אתחול ערך ברירת מחדל הוא מערך ריק
+      users: [],  // ✅ מערך משתמשים ריק כברירת מחדל
 
-      updateDevices: (devices) => set(() => ({ devices })),
+      updatedevice: (newDevices) => set(() => ({ device: newDevices })),
+
+      updateUsers: (users) => set(() => ({ users })), // ✅ עדכון רשימת המשתמשים
 
       refreshMetrics: () => {
         console.log("Refreshing system metrics...");

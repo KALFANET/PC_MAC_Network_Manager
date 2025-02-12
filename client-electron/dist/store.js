@@ -10,8 +10,10 @@ const useSystemStore = (0, zustand_1.create)()((0, middleware_1.persist)((0, mid
         debugMode: false,
     },
     currentDevice: "Unknown Device",
-    devices: [],
-    updateDevices: (devices) => set(() => ({ devices })),
+    device: [],
+    users: [],
+    updatedevice: (newDevices) => set(() => ({ device: newDevices })),
+    updateUsers: (users) => set(() => ({ users })),
     refreshMetrics: () => {
         console.log("Refreshing system metrics...");
     },

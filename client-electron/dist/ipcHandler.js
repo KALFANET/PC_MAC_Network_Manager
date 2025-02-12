@@ -20,7 +20,7 @@ electron_1.ipcMain.handle("getSystemStatus", async () => {
 electron_1.ipcMain.handle("fetchDevices", async () => {
     try {
         const devices = await api_1.default.fetchDevices();
-        store_1.default.getState().updateDevices(devices); // ✅ עדכון Zustand Store
+        store_1.default.getState().updatedevice(devices); // ✅ עדכון Zustand Store
         return devices;
     }
     catch (error) {

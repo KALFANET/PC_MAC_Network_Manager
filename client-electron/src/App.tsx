@@ -1,95 +1,126 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Wifi, WifiOff, RefreshCw } from "lucide-react";
-import useSystemStore from "./store";
-import { Command } from "./types"; 
-import { endpoints } from "./services/api"; // ✅ שינוי ייבוא מתאים
-import { validate } from "./services/validation";
+import React, { useState, useEffect } from 'react';
+import { Layout, Monitor, Activity, Package, Users, Settings, Terminal, Bell, Menu } from 'lucide-react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import axios from 'axios';
+import useSystemStore from './store'; // לוודא שהייבוא נכון
+import Dashboard from "./components/Dashboard";
+import DevicesPage from './pages/DevicesPage';
+import Performance from './pages/Performance';
+import UsersPage from './pages/UsersPage';
+import RemoteControl from './pages/RemoteControl';
+import SettingsPage from './pages/Settings';
 
 const App: React.FC = () => {
-  const { status, currentDevice, checkConnection, refreshMetrics, executeCommand } = useSystemStore();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const { device = [], updatedevice } = useSystemStore((state) => ({
+    device: state.device,
+    updatedevice: state.updatedevice,
+  }));
 
-  /** ✅ פונקציה לבדיקת מצב הרשת */
-  const checkStatus = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [isLoading, setIsLoading] = useState(true);
 
-      const isConnected = await checkConnection();
-
-      if (isConnected) {
-        await refreshMetrics();
-      }
-    } catch (error) {
-      console.error("Status check failed:", error);
-      setError(error instanceof Error ? error.message : "Status check failed");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [checkConnection, refreshMetrics]);
-
-  /** ✅ שימוש ב-useEffect לבדיקה אוטומטית */
   useEffect(() => {
-    checkStatus();
-    const interval = setInterval(checkStatus, 60000);
-    return () => clearInterval(interval);
-  }, [checkStatus]);
-
-  /** ✅ פונקציה להרצת פקודות */
-  const handleCommand = async (cmd: unknown) => {
-    try {
-      if (typeof cmd !== "object" || cmd === null) {
-        throw new Error("Invalid command format");
+    const fetchDevices = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('/api/devices');
+        updatedevice(response.data.devices);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const validationResult = validate.command(cmd);
-      if (!validationResult.success) {
-        throw new Error(validationResult.error.message);
-      }
+    fetchDevices();
+  }, [updatedevice]);
 
-      const commandData: Command = validationResult.data;
-      await executeCommand(commandData);
-    } catch (error) {
-      console.error("Command execution failed:", error);
-      setError(error instanceof Error ? error.message : "Command execution failed");
-    }
-  };
+  if (isLoading) {
+    return <div>טוען...</div>;
+  }
+
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Layout },
+    { id: 'devices', label: 'Devices', icon: Monitor },
+    { id: 'performance', label: 'Performance', icon: Activity },
+    { id: 'software', label: 'Software', icon: Package },
+    { id: 'remote', label: 'Remote Control', icon: Terminal },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="flex items-center justify-between p-4">
-        <h1 className="text-xl font-bold">Network Manager</h1>
-        <button
-          onClick={() => {
-            if (status.connected) {
-              refreshMetrics();
-            } else {
-              console.warn("Cannot refresh metrics: No connection");
-            }
-          }}
-          disabled={isLoading || !status.connected}
-          className="p-2 rounded hover:bg-slate-200 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
-        </button>
-      </div>
-
-      <div className="p-4">
-        <div className="flex items-center space-x-2">
-          {status.connected ? (
-            <Wifi className="text-green-500" />
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white border-r flex flex-col transition-all duration-300`}>
+        <div className="p-4 border-b flex items-center justify-between">
+          {sidebarOpen ? (
+            <div className="flex items-center gap-2">
+              <Layout className="h-6 w-6 text-blue-600" />
+              <span className="font-semibold">Network Manager</span>
+            </div>
           ) : (
-            <WifiOff className="text-red-500" />
+            <Layout className="h-6 w-6 text-blue-600 mx-auto" />
           )}
-          <span>{status.connected ? "Connected" : "Disconnected"}</span>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1 hover:bg-gray-100 rounded-lg">
+            <Menu className="h-4 w-4" />
+          </button>
         </div>
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-500 rounded text-red-500">
-            {error}
+        <nav className="flex-1 p-4 space-y-2">
+          {menuItems.map(item => (
+            <Link
+              to={`/${item.id}`}
+              key={item.id}
+              onClick={() => setCurrentPage(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                currentPage === item.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              {sidebarOpen && <span>{item.label}</span>}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white border-b h-16">
+          <div className="flex items-center justify-between px-6 h-full">
+            <h1 className="text-xl font-semibold">
+              {menuItems.find(item => item.id === currentPage)?.label}
+            </h1>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <button className="p-2 hover:bg-gray-100 rounded-lg relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+        </header>
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto p-6">
+   
+            <Routes>
+              {device.length > 0 ? (
+                <>
+                  <Route path="/devices" element={<DevicesPage devices={device} />} />
+                  <Route path="/dashboard" element={<Dashboard devices={device} />} />
+                  <Route path="/performance" element={<Performance />} />
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/remote" element={<RemoteControl />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/" element={<Dashboard devices={device} />} />
+                </>
+              ) : (
+                <p>טעינת מכשירים...</p>
+              )}
+            </Routes>
+        </main>
       </div>
     </div>
   );
