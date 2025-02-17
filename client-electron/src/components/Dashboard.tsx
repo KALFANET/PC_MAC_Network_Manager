@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wifi, WifiOff, Activity } from "lucide-react";
+import useSystemStore from '../store'; // הוספת ייבוא של ה-store
 
 interface Device {
   id: string;
@@ -11,25 +12,41 @@ interface Device {
 }
 
 interface DashboardProps {
-  devices: Device[];  // זכרו שה-devices הוא מערך ריק אם אין נתונים
+  devices: Device[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ devices = [] }) => {  // אם devices לא קיים, ישתמש במערך ריק
+const Dashboard: React.FC<DashboardProps> = ({ devices }) => {
   const connectionStatus = devices.length > 0 ? "connected" : "disconnected";
 
-  const handleConnect = (deviceId: string) => {
+  const handleConnect = async (deviceId: string) => {
     console.log(`Connecting to device: ${deviceId}`);
-    // Implementation for connecting to device
+    try {
+      // לוגיקת החיבור למכשיר
+      const device = devices.find(d => d.id === deviceId);
+      if (device) {
+        // עדכון הסטטוס במידת הצורך
+        useSystemStore.getState().updatedevice(
+          devices.map(d => 
+            d.id === deviceId 
+              ? { ...d, status: 'online' } 
+              : d
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to connect to device:", error);
+    }
   };
 
   const handleDetails = (deviceId: string) => {
     console.log(`Showing details for device: ${deviceId}`);
-    // Implementation for showing device details
+    // ניתן להוסיף כאן ניווט לדף פרטי המכשיר או פתיחת מודל
   };
 
   return (
     <div className="h-full bg-gray-100">
       <div className="w-full bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Header */}
         <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-blue-500" />
@@ -38,6 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({ devices = [] }) => {  // אם dev
         </div>
 
         <div className="p-4 border-b">
+          {/* Connection Status */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               {connectionStatus === "connected" ? (
@@ -69,6 +87,7 @@ const Dashboard: React.FC<DashboardProps> = ({ devices = [] }) => {  // אם dev
                     </span>
                   </div>
 
+                  {/* Resource Usage */}
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <div className="text-sm text-gray-600 mb-1">CPU</div>
@@ -104,12 +123,18 @@ const Dashboard: React.FC<DashboardProps> = ({ devices = [] }) => {  // אם dev
                     </div>
                   </div>
 
+                  {/* Action Buttons */}
                   <div className="mt-4 flex justify-between gap-2">
                     <button
                       onClick={() => handleConnect(device.id)}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                      disabled={device.status === 'online'}
+                      className={`flex-1 px-4 py-2 rounded transition-colors ${
+                        device.status === 'online'
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
                     >
-                      Connect
+                      {device.status === 'online' ? 'Connected' : 'Connect'}
                     </button>
                     <button
                       onClick={() => handleDetails(device.id)}

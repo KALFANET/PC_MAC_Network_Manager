@@ -1,7 +1,8 @@
-import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
-import { Command } from "./types"; // ✅ תיקון הנתיב לייבוא נכון
+import { create } from 'zustand';
+import { devtools, persist } from 'zustand/middleware';
+import { Command } from './types';
 
+// הגדרת הטיפוסים
 interface Status {
   connected: boolean;
   lastUpdate: string;
@@ -13,10 +14,11 @@ interface Devices {
   id: string;
   name: string;
   status: string;
-  cpuUsage: number;   // הוספת שדה cpuUsage
-  ramUsage: number;    // הוספת שדה ramUsage
-  networkUsage: number;  // הוספת שדה networkUsage
+  cpuUsage: number;
+  ramUsage: number;
+  networkUsage: number;
 }
+
 interface User {
   id: string;
   name: string;
@@ -26,7 +28,7 @@ interface User {
 interface SystemState {
   status: Status;
   currentDevice: string;
-  device: Devices[];  // מערך מסוג Devices (כולל את השדות הנוספים)
+  device: Devices[];
   users: User[];
   updatedevice: (device: Devices[]) => void;
   updateUsers: (users: User[]) => void;
@@ -36,33 +38,41 @@ interface SystemState {
   checkConnection: () => Promise<boolean>;
 }
 
+// ערכים התחלתיים
+const initialStatus: Status = {
+  connected: false,
+  lastUpdate: new Date().toISOString(),
+  version: "1.0.0",
+  debugMode: false,
+};
+
+// יצירת ה-store
 const useSystemStore = create<SystemState>()(
   persist(
     devtools((set, get) => ({
-      status: {
-        connected: false,
-        lastUpdate: new Date().toISOString(),
-        version: "1.0.0",
-        debugMode: false,
-      },
+      status: initialStatus,
       currentDevice: "Unknown Device",
-      device: [],  // ✅ אתחול ערך ברירת מחדל הוא מערך ריק
-      users: [],  // ✅ מערך משתמשים ריק כברירת מחדל
+      device: [],
+      users: [],
 
-      updatedevice: (newDevices) => set(() => ({ device: newDevices })),
+      updatedevice: (newDevices: Devices[]) => 
+        set(() => ({ device: newDevices })),
 
-      updateUsers: (users) => set(() => ({ users })), // ✅ עדכון רשימת המשתמשים
+      updateUsers: (users: User[]) => 
+        set(() => ({ users })),
 
       refreshMetrics: () => {
         console.log("Refreshing system metrics...");
       },
 
-      executeCommand: async (cmd: Command) => {
+      executeCommand: async (cmd: Command): Promise<void> => {
         console.log(`Executing command: ${cmd.command} (Type: ${cmd.type})`);
+        
         if (!cmd.command) {
           console.error("Missing command");
           return;
         }
+
         try {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           console.log("Command executed successfully.");
@@ -71,15 +81,16 @@ const useSystemStore = create<SystemState>()(
         }
       },
 
-      updateStatus: (newStatus) =>
+      updateStatus: (newStatus: Partial<Status>) =>
         set((state) => ({
           status: { ...state.status, ...newStatus },
         })),
 
-      checkConnection: async () => {
+      checkConnection: async (): Promise<boolean> => {
         try {
           console.log("Checking system connection...");
           const isConnected = Math.random() > 0.5;
+          
           set((state) => ({
             status: {
               ...state.status,
@@ -87,10 +98,12 @@ const useSystemStore = create<SystemState>()(
               lastUpdate: new Date().toISOString(),
             },
           }));
+
           console.log(`Connection status: ${isConnected ? "Connected" : "Disconnected"}`);
           return isConnected;
         } catch (error) {
           console.error("Connection check failed:", error);
+          
           set((state) => ({
             status: {
               ...state.status,
@@ -98,11 +111,15 @@ const useSystemStore = create<SystemState>()(
               lastUpdate: new Date().toISOString(),
             },
           }));
+          
           return false;
         }
       },
     })),
-    { name: "system-store", version: 1 }
+    {
+      name: "system-store",
+      version: 1
+    }
   )
 );
 

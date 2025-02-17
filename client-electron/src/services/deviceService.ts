@@ -1,56 +1,57 @@
-import axios from "axios";
+import axios from 'axios';
+import os from 'os';
+import { networkInterfaces } from 'os';
 
-const API_URL = "http://localhost:4000/api/devices"; // ודא שהכתובת נכונה
+export const registerDevice = async () => {
+    const deviceData = {
+        name: os.hostname(),
+        ipAddress: getLocalIpAddress(),
+        macAddress: getMacAddress(),
+        status: "online"
+    };
 
-export interface Device {
-  id: string;
-  name: string;
-  ipAddress: string;
-  status: string;
-  userId: string;
+    try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.post('http://localhost:4000/api/devices/register', deviceData, {
+            headers: { 'Authorization': token }
+        });
+        console.log("Device registered:", response.data.device);
+        return response.data.device;
+    } catch (error: any) {
+        console.error("Device registration failed:", error.response?.data?.message || error.message);
+        return null;
+    }
+};
+
+const getLocalIpAddress = (): string => {
+    const interfaces = networkInterfaces();
+    for (let iface of Object.values(interfaces)) {
+        for (let entry of iface) {
+            if (entry.family === 'IPv4' && !entry.internal) {
+                return entry.address;
+            }
+        }
+    }
+    return 'Unknown';
+};
+
+const getMacAddress = (): string => {
+    const interfaces = networkInterfaces();
+for (const iface of Object.values(interfaces)) {
+    if (iface) { // Add this check
+        for (const entry of iface) {
+            // ...
+        }for (const iface of Object.values(interfaces)) { // Use const
+    // ...
 }
 
-/** ✅ רישום מכשיר חדש */
-export const registerDevice = async (name: string, ipAddress: string, status: string): Promise<Device> => {
-  try {
-    const token = getToken();
-    if (!token) throw new Error("No authentication token found.");
-
-    const response = await axios.post<Device>(
-      API_URL,
-      { name, ipAddress, status }, // שליחת הנתונים המלאים שנדרשים
-      { headers: { Authorization: `Bearer ${token}` } } // שליחת ה-token בהצלחה
-    );
-
-    return response.data;
-  } catch (error) {
-    throw new Error("Device registration failed. " + getErrorMessage(error));
-  }
-};
-
-/** ✅ שליפת כל המכשירים של המשתמש */
-export const getDevices = async (): Promise<Device[]> => {
-  try {
-    const token = getToken();
-    if (!token) throw new Error("No authentication token found.");
-
-    const response = await axios.get<Device[]>(API_URL, {
-      headers: { Authorization: `Bearer ${token}` }, // שליחת ה-token ב-header
-    });
-
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to retrieve devices. " + getErrorMessage(error));
-  }
-};
-
-/** 🛠 פונקציות עזר לניהול טוקן */
-const getToken = () => localStorage.getItem("authToken");
-
-/** 🛠 פונקציה לשליפת הודעות שגיאה */
-const getErrorMessage = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
-    return error.response?.data?.message || "Unknown server error.";
-  }
-  return "An unexpected error occurred.";
+    }
+}
+for (const iface of Object.values(interfaces)) { // Use const
+            if (entry.mac && entry.mac !== '00:00:00:00:00:00') {
+                return entry.mac;
+            }
+        }
+    }
+    return 'Unknown';
 };
