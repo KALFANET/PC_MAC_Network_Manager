@@ -2,11 +2,10 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Devices', { // ודא שזה תואם לשם בטבלה
+    await queryInterface.createTable('Devices', {
       id: {
-        type: Sequelize.UUID,
+        type: Sequelize.UUID,  // שימוש ב-UUID כמפתח ראשי
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         primaryKey: true
       },
       name: {
@@ -15,35 +14,40 @@ module.exports = {
       },
       ipAddress: {
         type: Sequelize.STRING,
+        allowNull: false
+      },
+      macAddress: {
+        type: Sequelize.STRING,
         allowNull: false,
-        validate: {
-          isIP: true
-        }
+        unique: true
+      },
+      os: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      apiKey: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
       },
       status: {
-        type: Sequelize.ENUM('online', 'offline', 'unknown'),
-        defaultValue: 'unknown'
-      },
-      userId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'users', // ודא שזה תואם בדיוק לשם בטבלה
-          key: 'id'
-        }
+        type: Sequelize.STRING,
+        allowNull: false
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.NOW
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.NOW
       }
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Devices'); // ודא שזה מתאים לשם בטבלה
+    await queryInterface.dropTable('Devices');
   }
 };

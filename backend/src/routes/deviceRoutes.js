@@ -1,12 +1,36 @@
 const express = require('express');
-const router = express.Router();
-const deviceController = require('../controllers/deviceController');
-const { authenticateToken } = require('../middlewares/authMiddleware');
+const deviceController = require('../controllers/deviceController'); // ✅ וידוא ייבוא תקין
+const { authenticateDevice } = require('../middlewares/deviceAuth');
 
-router.post('/', authenticateToken, deviceController.createDevice);
-router.get('/', authenticateToken, deviceController.getDevices);
-router.get('/:id', authenticateToken, deviceController.getDeviceById);
-router.put('/:id', authenticateToken, deviceController.updateDevice);
-router.delete('/:id', authenticateToken, deviceController.deleteDevice);
+const router = express.Router();
+
+// ✅ בדיקה אם הפונקציות קיימות
+if (!deviceController.autoRegisterDevice) {
+    console.error("❌ ERROR: deviceController.autoRegisterDevice is undefined!");
+}
+
+// ✅ רישום מכשירים אוטומטי בעת התקנה
+router.post('/register', deviceController.autoRegisterDevice);
+
+// ✅ חידוש טוקן למכשיר
+router.post('/refresh-token', authenticateDevice, deviceController.refreshToken);
+
+// ✅ קבלת רשימת המכשירים
+router.get('/', deviceController.getDevices);
+
+// ✅ מחיקת מכשיר
+router.delete('/:deviceId', deviceController.deleteDevice);
+
+// ✅ שליחת פקודות מהמכשיר ל-Backend
+router.post('/command', authenticateDevice, deviceController.executeCommand);
+
+// ✅ התקנת תוכנה מרחוק
+router.post('/install', authenticateDevice, deviceController.installSoftware);
+
+// ✅ שליפת סטטוס של מכשיר לפי ID
+router.get('/status/:deviceId', authenticateDevice, deviceController.getDeviceStatus);
+
+// ✅ עדכון נתוני מכשיר
+router.put('/update/:deviceId', authenticateDevice, deviceController.updateDevice);
 
 module.exports = router;
