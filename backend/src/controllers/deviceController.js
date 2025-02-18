@@ -7,13 +7,13 @@ require('dotenv').config();
 console.log("🔍 deviceController.js loaded");
 
 // ✅ רישום מכשיר חדש
+// ✅ רישום מכשיר חדש
 exports.autoRegisterDevice = async (req, res) => {
     try {
         console.log("📥 Received registration request:", req.body);
 
         const { macAddress, name, ipAddress, os, deviceId, platform, osVersion, cpu, memory } = req.body;
 
-        // 📌 בדיקה אם חסרים נתונים
         if (!macAddress || !ipAddress || !name || !os || !deviceId || !platform || !osVersion || !cpu || !memory) {
             console.error("❌ Missing device details:", req.body);
             return res.status(400).json({ message: "Missing device details" });
@@ -29,26 +29,20 @@ exports.autoRegisterDevice = async (req, res) => {
                 name,
                 ipAddress,
                 os,
-                deviceId,
-                platform,
                 osVersion,
                 cpu,
                 memory,
+                deviceId,
+                platform,
                 status: 'online',
                 apiKey
             });
         } else {
-            await device.update({ ipAddress, status: 'online' });
+            await device.update({ ipAddress, status: 'online', osVersion, cpu, memory });
         }
 
-        const token = jwt.sign({ deviceId: device.id }, process.env.SECRET_KEY, { expiresIn: '7d' });
-        console.log("🔑 Generated Token:", token);
-        if (Log) {
-            await Log.create({ deviceId: device.id, action: 'Device Registered', details: JSON.stringify(req.body) });
-        }
-
-        console.log("✅ Device registered successfully:", device, token);
-        res.status(200).json({ message: 'Device registered successfully', device, apiKey: device.apiKey, token });
+        console.log("✅ Device registered successfully:", device);
+        res.status(200).json({ message: 'Device registered successfully', device, apiKey: device.apiKey });
     } catch (error) {
         console.error("❌ Error registering device:", error.message);
         res.status(500).json({ message: 'Error registering device', error: error.message });
@@ -117,40 +111,28 @@ exports.deleteDevice = async (req, res) => {
 
 // ✅ שליחת פקודות מהמכשיר ל-Backend
 exports.executeCommand = async (req, res) => {
-    console.log("📥 Received command request headers:", req.headers);
+    console.log("📌 Received executeCommand request:", req.body);
+    console.log("📌 Extracted deviceId:", req.device?.deviceId);
 
     try {
-        const { command } = req.body;
-        if (!command) {
-            return res.status(400).json({ message: "Command is required" });
+        const { command, deviceId } = req.body; // ✅ ווידוא קליטת deviceId
+        if (!command || !deviceId) {
+            return res.status(400).json({ message: "Command and deviceId are required" });
         }
-
-        // בדיקת אימות באמצעות ה-API Key
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ message: "Unauthorized - No API Key" });
-        }
-
-        const apiKey = authHeader.replace("Bearer ", "");
-        const device = await Device.findOne({ where: { apiKey } });
-
-        if (!device) {
-            return res.status(403).json({ message: "Invalid API Key" });
-        }
-
-        console.log(`📡 Executing command '${command}' on device ${device.id}`);
 
         exec(command, async (error, stdout, stderr) => {
             if (error) {
                 return res.status(500).json({ message: "Error executing command", error: stderr });
             }
 
-            // ✅ רישום הלוגים עם deviceId תקין
-            await Log.create({
-                deviceId: device.id,  // ✅ שמירת ה-deviceId הנכון
-                action: 'Command Executed',
-                details: command
-            });
+            // ✅ ווידוא שה- deviceId עובר ללוגים
+            if (Log) {
+                await Log.create({
+                    deviceId: deviceId,
+                    action: 'Command Executed',
+                    details: command
+                });
+            }
 
             res.status(200).json({ output: stdout });
         });
