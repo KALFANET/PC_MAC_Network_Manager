@@ -1,4 +1,4 @@
-require('dotenv').config(); // טעינת משתני סביבה
+require('dotenv').config();
 const path = require('path');
 
 module.exports = {
@@ -7,20 +7,18 @@ module.exports = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    migrationStorage: "sequelize",
-    migrationStoragePath: path.join(__dirname, '../migrations'),    dialectOptions: {
+    dialect: "postgres",
+    migrationStorageTableName: "sequelize_meta",
+    migrations: {
+      directory: path.resolve(__dirname, "../migrations") // 👈 עדכון הנתיב הנכון למיגרציות
+    },
+    dialectOptions: {
       ssl: {
         require: false,
         rejectUnauthorized: false
       }
-   
     },
-    logging: false,
-    migrationStorageTableName: "migrations",
-    seederStorage: "sequelize",
-    seederStorageTableName: "seeders"
+    logging: false
   },
   test: {
     username: process.env.DB_USER,
@@ -29,6 +27,10 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
+    migrationStorageTableName: "sequelize_meta",
+    migrations: {
+      directory: path.resolve(__dirname, "../migrations") // 👈 עדכון הנתיב הנכון למיגרציות
+    },
     dialectOptions: {
       ssl: {
         require: true,
@@ -44,6 +46,10 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
+    migrationStorageTableName: "sequelize_meta",
+    migrations: {
+      directory: path.resolve(__dirname, "../migrations") // 👈 עדכון הנתיב הנכון למיגרציות
+    },
     dialectOptions: {
       ssl: {
         require: true,

@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-  const Log = sequelize.define('Logs', {
+  const Log = sequelize.define('Log', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'Devices', // ✅ הגדרת deviceId כמפתח זר לטבלת Devices
+        model: 'Devices', // ✅ לוודא שזה שם הטבלה הנכון!
         key: 'id'
       }
     },
@@ -28,6 +28,11 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Logs',
     timestamps: true
   });
+
+  // ✅ הוספת קשרים בין הטבלאות
+  Log.associate = (models) => {
+    Log.belongsTo(models.Device, { foreignKey: 'deviceId', as: 'device' });
+  };
 
   return Log;
 };

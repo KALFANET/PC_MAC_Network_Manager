@@ -1,18 +1,16 @@
-'use strict';
-
 module.exports = (sequelize, DataTypes) => {
   const Device = sequelize.define('Device', {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      defaultValue: DataTypes.UUIDV4, // ✅ יצירת UUID אוטומטית
       primaryKey: true
     },
-    macAddress: {
+    idKey: { // 🔹 המזהה החלופי שהוספנו
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    name: {
+    macAddress: {
       type: DataTypes.STRING,
       allowNull: false
     },
@@ -20,23 +18,34 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    os: {
+    name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
-    status: {
+    os: {
       type: DataTypes.STRING,
       allowNull: false
     },
     apiKey: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
+      allowNull: false
+    },
+    status: {
+      type: DataTypes.ENUM('online', 'offline'),
+      defaultValue: 'offline'
+    },
+    lastSeen: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    lastCommandTime: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    lastCommandStatus: {
+      type: DataTypes.ENUM('success', 'failure'),
+      allowNull: true
     }
-  }, 
-  {
-    tableName: 'Devices',
-    timestamps: true
   });
 
   return Device;

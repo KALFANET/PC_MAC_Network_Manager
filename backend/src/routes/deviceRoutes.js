@@ -1,36 +1,30 @@
 const express = require('express');
-const deviceController = require('../controllers/deviceController'); // ✅ וידוא ייבוא תקין
-const { authenticateDevice } = require('../middlewares/deviceAuth');
+const deviceController = require('../controllers/deviceController');
 
 const router = express.Router();
-
-// ✅ בדיקה אם הפונקציות קיימות
-if (!deviceController.autoRegisterDevice) {
-    console.error("❌ ERROR: deviceController.autoRegisterDevice is undefined!");
-}
 
 // ✅ רישום מכשירים אוטומטי בעת התקנה
 router.post('/register', deviceController.autoRegisterDevice);
 
-// ✅ חידוש טוקן למכשיר
-router.post('/refresh-token', authenticateDevice, deviceController.refreshToken);
-
-// ✅ קבלת רשימת המכשירים
+// ✅ שליפת רשימת המכשירים
 router.get('/', deviceController.getDevices);
 
-// ✅ מחיקת מכשיר
-router.delete('/:deviceId', deviceController.deleteDevice);
+// ✅ מחיקת מכשיר מהרשת
+router.delete('/:idKey', deviceController.deleteDevice);
 
 // ✅ שליחת פקודות מהמכשיר ל-Backend
-router.post('/command', authenticateDevice, deviceController.executeCommand);
+router.post('/command', deviceController.executeCommand);
 
 // ✅ התקנת תוכנה מרחוק
-router.post('/install', authenticateDevice, deviceController.installSoftware);
+router.post('/install', deviceController.installSoftware);
 
-// ✅ שליפת סטטוס של מכשיר לפי ID
-router.get('/status/:deviceId', authenticateDevice, deviceController.getDeviceStatus);
+// ✅ שליפת סטטוס של מכשיר לפי מזהה (`idKey`)
+router.get('/status/:idKey', deviceController.getDeviceStatus);
 
-// ✅ עדכון נתוני מכשיר
-router.put('/update/:deviceId', authenticateDevice, deviceController.updateDevice);
+// ✅ עדכון סטטוס מכשיר (Online/Offline)
+router.put('/status/:idKey', deviceController.updateDeviceStatus);
+
+// ✅ עדכון נתוני מכשיר (לדוגמה: כתובת IP, שם מכשיר)
+router.put('/update/:idKey', deviceController.updateDevice);
 
 module.exports = router;

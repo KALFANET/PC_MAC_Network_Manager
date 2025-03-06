@@ -1,70 +1,63 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { Device, Log } = require('../models'); // ✅ טוען מודלים ממקור אחד
+const { Device, Log } = require('../models'); // ✅ טעינת מודלים ממקור אחד
 const { exec } = require('child_process');
 require('dotenv').config();
+const { v4: uuidv4 } = require('uuid');
 
 console.log("🔍 deviceController.js loaded");
 
-// ✅ רישום מכשיר חדש
 // ✅ רישום מכשיר חדש
 exports.autoRegisterDevice = async (req, res) => {
     try {
         console.log("📥 Received registration request:", req.body);
 
-        const { macAddress, name, ipAddress, os, deviceId, platform, osVersion, cpu, memory } = req.body;
+        const { idKey, name, ipAddress, macAddress, os, osVersion, cpu, memory, platform } = req.body;
 
-        if (!macAddress || !ipAddress || !name || !os || !deviceId || !platform || !osVersion || !cpu || !memory) {
+        if (!idKey || !macAddress || !ipAddress || !name || !os) {
             console.error("❌ Missing device details:", req.body);
             return res.status(400).json({ message: "Missing device details" });
         }
 
-        let device = await Device.findOne({ where: { macAddress } });
+        let device = await Device.findOne({ where: { idKey } });
 
         if (!device) {
-            const apiKey = crypto.randomBytes(32).toString('hex');
+            const newId = uuidv4();
+            const newApiKey = crypto.randomBytes(32).toString('hex');
 
             device = await Device.create({
-                macAddress,
+                id: newId,
+                idKey,
                 name,
                 ipAddress,
+                macAddress,
                 os,
                 osVersion,
                 cpu,
                 memory,
-                deviceId,
                 platform,
-                status: 'online',
-                apiKey
+                apiKey: newApiKey,
+                status: 'offline',
+                lastCommandTime: null,
+                lastCommandStatus: null,
+                lastSeen: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date()
             });
         } else {
-            await device.update({ ipAddress, status: 'online', osVersion, cpu, memory });
+            await device.update({
+                ipAddress,
+                status: 'online',
+                lastSeen: new Date(),
+                updatedAt: new Date()
+            });
         }
 
         console.log("✅ Device registered successfully:", device);
-        res.status(200).json({ message: 'Device registered successfully', device, apiKey: device.apiKey });
+        res.status(200).json({ message: 'Device registered successfully', apiKey: device.apiKey });
     } catch (error) {
         console.error("❌ Error registering device:", error.message);
         res.status(500).json({ message: 'Error registering device', error: error.message });
-    }
-};
-
-// ✅ חידוש טוקן למכשיר
-exports.refreshToken = async (req, res) => {
-    try {
-        console.log("📥 Received token refresh request:", req.device);
-
-        const { deviceId } = req.device;
-        const newToken = jwt.sign({ deviceId }, process.env.SECRET_KEY, { expiresIn: '7d' });
-
-        if (Log) {
-            await Log.create({ deviceId, action: 'Token Refreshed', details: 'New token issued' });
-        }
-
-        res.status(200).json({ token: newToken });
-    } catch (error) {
-        console.error("❌ Error refreshing token:", error.message);
-        res.status(500).json({ message: 'Error refreshing token', error: error.message });
     }
 };
 
@@ -74,106 +67,264 @@ exports.getDevices = async (req, res) => {
         console.log("📥 Fetching devices list");
 
         const devices = await Device.findAll({
-            attributes: ['id', 'macAddress', 'name', 'ipAddress', 'os', 'status', 'createdAt', 'updatedAt']
+            attributes: ['id', 'idKey', 'name', 'ipAddress', 'macAddress', 'os', 'apiKey', 'status', 'createdAt', 'updatedAt', 'lastCommandTime', 'lastCommandStatus', 'lastSeen']
         });
 
-        res.status(200).json({ devices });
+        res.status(200).json(devices);
     } catch (error) {
         console.error("❌ Error fetching devices:", error.message);
         res.status(500).json({ message: 'Error fetching devices', error: error.message });
     }
 };
 
-// ✅ מחיקת מכשיר מהרשת
-exports.deleteDevice = async (req, res) => {
-    try {
-        console.log("📥 Deleting device:", req.params);
+// ✅ שליחת פקודות מהמכשיר ל-Backend
+exports.executeCommand = async (req, res) => {
+    console.log("📌 Received executeCommand request:", req.body);
 
-        const { deviceId } = req.params;
-        const device = await Device.findByPk(deviceId);
+    try {
+        const { command, idKey } = req.body;
+
+        if (!command || !idKey) {
+            return res.status(400).json({ message: "Command and idKey are required" });
+        }
+
+        const device = await Device.findOne({ where: { idKey } });
 
         if (!device) {
             return res.status(404).json({ message: "Device not found" });
         }
 
-        await Device.destroy({ where: { id: deviceId } });
+        exec(command, async (error, stdout, stderr) => {
+            let status = error ? 'failure' : 'success';
+            if (error) {
+                console.error(`❌ Command execution failed on device ${idKey}:`, stderr);
+                return res.status(500).json({ message: "Error executing command", error: stderr });
+            }
 
-        if (Log) {
-            await Log.create({ deviceId, action: 'Device Deleted', details: 'Device removed from system' });
+            await device.update({
+                lastCommandTime: new Date(),
+                lastCommandStatus: status
+            });
+
+            if (Log) {
+                await Log.create({
+                    deviceId: device.id,
+                    action: 'Command Executed',
+                    details: command,
+                    status
+                });
+            }
+
+            console.log(`✅ Command executed successfully on device ${idKey}`);
+            res.status(200).json({ output: stdout, status });
+        });
+
+    } catch (error) {
+        console.error("❌ Error executing command:", error.message);
+        res.status(500).json({ message: 'Error executing command', error: error.message });
+    }
+};
+
+// ✅ התקנת תוכנה מרחוק (שוחזר!)
+
+exports.installSoftware = async (req, res) => {
+    try {
+        console.log("📥 Request to install software:", req.body);
+
+        const { idKey, softwareUrl, os } = req.body;
+
+        if (!idKey || !softwareUrl || !os) {
+            return res.status(400).json({ message: "Missing parameters: idKey, softwareUrl, and os are required" });
         }
 
-        res.status(200).json({ message: 'Device removed successfully' });
+        // 🔍 שליפת המכשיר מהמסד נתונים לפי `idKey`
+        const device = await Device.findOne({ where: { idKey } });
+
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
+        }
+
+        console.log(`📡 Preparing installation on ${idKey} (${os}) from ${softwareUrl}...`);
+
+        // 🎯 ולידציה נוספת למערכת ההפעלה
+        const osLower = os.toLowerCase();
+        if (osLower !== "macos" && osLower !== "windows") {
+            return res.status(400).json({ message: "Unsupported operating system" });
+        }
+
+        // 📌 יצירת פקודת התקנה לפי מערכת ההפעלה
+        let installCommand;
+        if (osLower === "macos") {
+            installCommand = `
+                curl -o /tmp/software.pkg "${softwareUrl}" &&
+                sudo installer -pkg /tmp/software.pkg -target /
+            `;
+        } else if (osLower === "windows") {
+            installCommand = `
+                powershell -Command "Invoke-WebRequest -Uri '${softwareUrl}' -OutFile 'C:\\Temp\\software.msi';
+                Start-Process -FilePath 'msiexec.exe' -ArgumentList '/i C:\\Temp\\software.msi /quiet /norestart' -Wait"
+            `;
+        }
+
+        // 🚀 ביצוע הפקודה
+        exec(installCommand, async (error, stdout, stderr) => {
+            let status = error ? 'failure' : 'success';
+
+            if (error) {
+                console.error(`❌ Software installation failed on device ${idKey}:`, stderr);
+                return res.status(500).json({ message: "Error installing software", error: stderr });
+            }
+
+            // 📌 שמירת לוג התקנה
+            if (Log) {
+                await Log.create({
+                    deviceId: device.id,
+                    action: 'Software Installed',
+                    details: softwareUrl,
+                    status
+                });
+            }
+
+            console.log(`✅ Software installed successfully on device ${idKey}`);
+            res.status(200).json({ message: "Software installed successfully", output: stdout, status });
+        });
+
+    } catch (error) {
+        console.error("❌ Error processing installation request:", error.message);
+        res.status(500).json({ message: 'Error processing installation request', error: error.message });
+    }
+};
+// ✅ חידוש טוקן (שוחזר!)
+exports.refreshToken = async (req, res) => {
+    try {
+        console.log("📥 Received token refresh request:", req.device);
+
+        const { idKey } = req.device;
+        const newToken = jwt.sign({ idKey }, process.env.SECRET_KEY, { expiresIn: '7d' });
+
+        if (Log) {
+            await Log.create({
+                deviceId: req.device.id,
+                action: 'Token Refreshed',
+                details: 'New token issued'
+            });
+        }
+
+        res.status(200).json({ token: newToken });
+    } catch (error) {
+        console.error("❌ Error refreshing token:", error.message);
+        res.status(500).json({ message: 'Error refreshing token', error: error.message });
+    }
+};
+// ✅ מחיקת מכשיר מהרשת
+exports.deleteDevice = async (req, res) => {
+    try {
+        console.log("📥 Deleting device:", req.params);
+
+        const { idKey } = req.params;
+        const device = await Device.findOne({ where: { idKey } });
+
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
+        }
+
+        await Device.destroy({ where: { idKey } });
+
+        if (Log) {
+            await Log.create({
+                deviceId: device.id,
+                action: 'Device Deleted',
+                details: 'Device removed from system'
+            });
+        }
+
+        console.log(`✅ Device ${idKey} removed successfully`);
+        res.status(200).json({ message: "Device removed successfully" });
     } catch (error) {
         console.error("❌ Error deleting device:", error.message);
         res.status(500).json({ message: 'Error deleting device', error: error.message });
     }
 };
-
-// ✅ שליחת פקודות מהמכשיר ל-Backend
-exports.executeCommand = async (req, res) => {
-    console.log("📌 Received executeCommand request:", req.body);
-    console.log("📌 Extracted deviceId:", req.device?.deviceId);
-
+exports.updateDevice = async (req, res) => {
     try {
-        const { command, deviceId } = req.body; // ✅ ווידוא קליטת deviceId
-        if (!command || !deviceId) {
-            return res.status(400).json({ message: "Command and deviceId are required" });
+        console.log("📥 Updating device:", req.params, req.body);
+
+        const { idKey } = req.params;
+        const updateData = req.body;
+        
+        // 🔹 שדות שמותר לעדכן
+        const allowedFields = ['name', 'ipAddress', 'osVersion', 'cpu', 'memory', 'platform'];
+        
+        // 🔹 סינון שדות לא מורשים
+        const filteredData = {};
+        for (const field of allowedFields) {
+            if (updateData[field] !== undefined) {
+                filteredData[field] = updateData[field];
+            }
+        }
+        
+        if (Object.keys(filteredData).length === 0) {
+            return res.status(400).json({ message: "No valid fields to update" });
         }
 
-        exec(command, async (error, stdout, stderr) => {
-            if (error) {
-                return res.status(500).json({ message: "Error executing command", error: stderr });
-            }
-
-            // ✅ ווידוא שה- deviceId עובר ללוגים
-            if (Log) {
-                await Log.create({
-                    deviceId: deviceId,
-                    action: 'Command Executed',
-                    details: command
-                });
-            }
-
-            res.status(200).json({ output: stdout });
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Error executing command', error: error.message });
-    }
-};
-// ✅ התקנת תוכנה מרחוק
-exports.installSoftware = async (req, res) => {
-    try {
-        console.log("📥 Installing software:", req.body);
-
-        const { softwareUrl } = req.body;
-        if (!softwareUrl) {
-            return res.status(400).json({ message: "Software URL is required" });
+        const device = await Device.findOne({ where: { idKey } });
+        
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
         }
 
-        exec(`curl -O ${softwareUrl} && sudo installer -pkg ${softwareUrl} -target /`, (error, stdout, stderr) => {
-            if (error) {
-                return res.status(500).json({ message: "Error installing software", error: stderr });
-            }
+        await device.update(filteredData);
+        
+        if (Log) {
+            await Log.create({ 
+                deviceId: device.id, 
+                action: 'Device Updated', 
+                details: JSON.stringify(filteredData) 
+            });
+        }
 
-            if (Log) {
-                Log.create({ deviceId: req.device.deviceId, action: 'Software Installed', details: softwareUrl });
-            }
-
-            res.status(200).json({ message: "Software installed successfully", output: stdout });
-        });
+        console.log(`✅ Device ${idKey} updated successfully`);
+        res.status(200).json({ message: "Device updated successfully", device });
     } catch (error) {
-        console.error("❌ Error installing software:", error.message);
-        res.status(500).json({ message: 'Error installing software', error: error.message });
+        console.error("❌ Error updating device:", error.message);
+        res.status(500).json({ message: 'Error updating device', error: error.message });
     }
 };
+exports.updateDeviceStatus = async (req, res) => {
+    try {
+        console.log("📥 Updating device status:", req.params);
 
-// ✅ שליפת סטטוס של מכשיר
+        const { idKey } = req.params;
+        const { status } = req.body;
+        
+        if (!status || !['online', 'offline'].includes(status)) {
+            return res.status(400).json({ message: "Invalid status. Must be 'online' or 'offline'" });
+        }
+
+        const device = await Device.findOne({ where: { idKey } });
+
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
+        }
+
+        await device.update({ 
+            status,
+            lastSeen: new Date()
+        });
+
+        console.log(`✅ Device ${idKey} status updated to ${status}`);
+        res.status(200).json({ message: `Status updated to ${status}` });
+    } catch (error) {
+        console.error("❌ Error updating device status:", error.message);
+        res.status(500).json({ message: 'Error updating device status', error: error.message });
+    }
+};
 exports.getDeviceStatus = async (req, res) => {
     try {
         console.log("📥 Fetching device status:", req.params);
 
-        const { deviceId } = req.params;
-        const device = await Device.findByPk(deviceId);
+        const { idKey } = req.params;
+        const device = await Device.findOne({ where: { idKey } });
 
         if (!device) {
             return res.status(404).json({ message: "Device not found" });
@@ -183,31 +334,5 @@ exports.getDeviceStatus = async (req, res) => {
     } catch (error) {
         console.error("❌ Error fetching device status:", error.message);
         res.status(500).json({ message: 'Error fetching device status', error: error.message });
-    }
-};
-
-// ✅ עדכון פרטי מכשיר
-exports.updateDevice = async (req, res) => {
-    try {
-        console.log("📥 Updating device:", req.body);
-
-        const { deviceId } = req.params;
-        const { name, status } = req.body;
-
-        const device = await Device.findByPk(deviceId);
-        if (!device) {
-            return res.status(404).json({ message: "Device not found" });
-        }
-
-        await device.update({ name, status });
-
-        if (Log) {
-            Log.create({ deviceId, action: 'Device Updated', details: JSON.stringify(req.body) });
-        }
-
-        res.status(200).json({ message: "Device updated successfully", device });
-    } catch (error) {
-        console.error("❌ Error updating device:", error.message);
-        res.status(500).json({ message: 'Error updating device', error: error.message });
     }
 };
